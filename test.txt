@@ -1,0 +1,502 @@
+# description : Check Point Gaia firewall baseline for <BANK NAME>,
+#               derived from CIS Check Point Firewall Benchmark L1 v1.1.0.
+#               Values follow the bank's "Baseline Document - Checkpoint Firewall".
+#
+#<ui_metadata>
+#<display_name>Bank Check Point Firewall Baseline v1.0</display_name>
+#<spec>
+#  <type>Custom</type>
+#  <name>Check Point Firewall</name>
+#  <profile>Bank Baseline</profile>
+#  <version>1.0</version>
+#</spec>
+#</ui_metadata>
+
+<check_type:"CheckPoint">
+
+# ---------------------------------------------------------------
+# 1. Configure Authentication Server  (Severity: High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-01 Authentication server (RADIUS/TACACS/ARCOS) is configured"
+  info        : "All users must authenticate. Set in SmartConsole: User Properties > Authentication > select scheme and server. Not readable from Gaia config - verify manually."
+  solution    : "SmartConsole: User Properties > Authentication > select RADIUS/TACACS/ARCOS and a server."
+  reference   : "BANK|CP-01"
+</report>
+
+# ---------------------------------------------------------------
+# 2. Configure Web Session Timeout  (High)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-02 Web session timeout is 5 minutes or less"
+  info        : "HTTPS session to the Gaia portal must time out at 5 minutes or less. Default is 15."
+  solution    : "Hostname> set web session-timeout 5"
+  reference   : "BANK|CP-02"
+  regex       : "set web session-timeout"
+  expect      : "set web session-timeout [1-5][\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 3. Configure inactivity timeout  (High)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-03 Clish inactivity timeout is 5 minutes or less"
+  info        : "Idle clish session must be closed after 5 minutes or less."
+  solution    : "Hostname> set inactivity-timeout 5"
+  reference   : "BANK|CP-03"
+  regex       : "set inactivity-timeout"
+  expect      : "set inactivity-timeout [1-5][\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 4. Configure User Lockout Settings  (High)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-04a Deny-on-fail is enabled"
+  info        : "Account lockout after failed logins must be on."
+  solution    : "Hostname> set password-controls deny-on-fail enable on"
+  reference   : "BANK|CP-04"
+  regex       : "set password-controls deny-on-fail enable"
+  expect      : "set password-controls deny-on-fail enable (on|true)[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-04b Failed login attempts allowed is 3 or less"
+  info        : "Lock the account after 3 failed attempts. Default is 10."
+  solution    : "Hostname> set password-controls deny-on-fail failures-allowed 3"
+  reference   : "BANK|CP-04"
+  regex       : "set password-controls deny-on-fail failures-allowed"
+  expect      : "set password-controls deny-on-fail failures-allowed [1-3][\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-04c Lockout also applies to admin (block-admin on)"
+  info        : "block-admin must be on so the admin account also locks."
+  solution    : "Hostname> set password-controls deny-on-fail block-admin on"
+  reference   : "BANK|CP-04"
+  regex       : "set password-controls deny-on-fail block-admin"
+  expect      : "set password-controls deny-on-fail block-admin (on|true)[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-04d Lockout duration (allow-after) is 300 seconds or more"
+  info        : "allow-after is the number of seconds the account stays locked. Bank value: 300."
+  solution    : "Hostname> set password-controls deny-on-fail allow-after 300"
+  reference   : "BANK|CP-04"
+  regex       : "set password-controls deny-on-fail allow-after"
+  expect      : "set password-controls deny-on-fail allow-after ([3-9][0-9]{2}|[1-9][0-9]{3,})[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 5. Configure Minimum Password Length  (High)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-05a Minimum password length is 12 or higher"
+  info        : "Bank minimum is 12 characters. Applies to user and SNMP passwords."
+  solution    : "Hostname> set password-controls min-password-length 12"
+  reference   : "BANK|CP-05"
+  regex       : "set password-controls min-password-length"
+  expect      : "set password-controls min-password-length (1[2-9]|[2-9][0-9]|1[0-2][0-9])[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-05b Password complexity is 4"
+  info        : "All four character classes required."
+  solution    : "Hostname> set password-controls complexity 4"
+  reference   : "BANK|CP-05"
+  regex       : "set password-controls complexity"
+  expect      : "set password-controls complexity 4[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 6. Configure Password History  (High)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-06a Password history checking is on"
+  info        : "Reuse of old passwords must be blocked."
+  solution    : "Hostname> set password-controls history-checking on"
+  reference   : "BANK|CP-06"
+  regex       : "set password-controls history-checking"
+  expect      : "set password-controls history-checking (on|true)[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-06b Password history length is 10 or more"
+  info        : "Bank value: 10 previous passwords remembered."
+  solution    : "Hostname> set password-controls history-length 10"
+  reference   : "BANK|CP-06"
+  regex       : "set password-controls history-length"
+  expect      : "set password-controls history-length [1-9][0-9]+[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 7. Configure Password Expiration  (High)
+# NOTE: the baseline only gives expiration-warning-days 10.
+#       It does not give a password-expiration (days valid) value.
+#       VERIFY with the bank whether a password-expiration value is required.
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-07 Password expiration warning is 10 days or more"
+  info        : "Users are warned this many days before the password expires. Bank value: 10. Default is 7."
+  solution    : "Hostname> set password-controls expiration-warning-days 10"
+  reference   : "BANK|CP-07"
+  regex       : "set password-controls expiration-warning-days"
+  expect      : "set password-controls expiration-warning-days ([1-9][0-9]+)[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 8. Ensure Stealth Rule is Configured  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-08 Stealth rule is configured"
+  info        : "Rule near the top of the rulebase: Source=Any, Destination=Security Gateway, Service=Any, Action=Drop. Rulebase is in SmartConsole, not Gaia config - verify manually."
+  solution    : "SmartConsole: add the Stealth rule above all other rules."
+  reference   : "BANK|CP-08"
+</report>
+
+# ---------------------------------------------------------------
+# 9. CleanUp Rule should be configured  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-09 Cleanup rule is configured at the end of the rulebase"
+  info        : "Last rule: Source=Any, Destination=Any, Service=Any, Action=Drop, Track=Log. Verify manually in SmartConsole."
+  solution    : "SmartConsole: add the Cleanup rule as the last rule with Track=Log."
+  reference   : "BANK|CP-09"
+</report>
+
+# ---------------------------------------------------------------
+# 10. Configure IPS Protection  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-10 IPS blade is enabled with a profile assigned"
+  info        : "IPS profile created and gateway listed under Enforcing Gateways. Verify manually in SmartConsole."
+  solution    : "SmartConsole: IPS tab > Profiles > create profile; IPS tab > Enforcing Gateways > add gateway; install policy."
+  reference   : "BANK|CP-10"
+</report>
+
+# ---------------------------------------------------------------
+# 11. Configure URL Filtering and Application Control  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-11 Application Control and URL Filtering blades are enabled"
+  info        : "Both blades ticked under Gateway Properties > Network Security. Verify manually in SmartConsole."
+  solution    : "SmartConsole: Gateway Properties > Network Security > tick Application Control and URL Filtering; install policy."
+  reference   : "BANK|CP-11"
+</report>
+
+# ---------------------------------------------------------------
+# 12. Log setting should be enabled  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-12 Logging Status is enabled on the management server"
+  info        : "Management server object > Management tab > Logging Status ticked. Verify manually in SmartConsole."
+  solution    : "SmartConsole: edit management server object > Management tab > enable Logging Status."
+  reference   : "BANK|CP-12"
+</report>
+
+# ---------------------------------------------------------------
+# 13. Enable SSL for Web Management  (High)
+# VERIFY: baseline says "set web ssl-port {Port}" without a port number.
+#         443 is assumed below - confirm with the bank.
+# VERIFY: baseline says "set web ssl3-enabled on". Confirm with the bank
+#         that this is intended (SSLv3 is an old protocol version).
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-13a Web management SSL port is set"
+  info        : "HTTPS port for the Gaia portal. Bank baseline gives no port number; 443 assumed."
+  solution    : "Hostname> set web ssl-port 443"
+  reference   : "BANK|CP-13"
+  regex       : "set web ssl-port"
+  expect      : "set web ssl-port 443[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-13b Web ssl3-enabled is on (as per bank baseline)"
+  info        : "Bank baseline requires: set web ssl3-enabled on."
+  solution    : "Hostname> set web ssl3-enabled on"
+  reference   : "BANK|CP-13"
+  regex       : "set web ssl3-enabled"
+  expect      : "set web ssl3-enabled (on|true)[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 14. Anti-Bot and Anti-Virus Software Blades  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-14 Anti-Bot and Anti-Virus blades are enabled"
+  info        : "Gateway Properties > blades ticked, Threat Prevention policy installed. Verify manually in SmartConsole."
+  solution    : "SmartConsole: Gateway Properties > enable Anti-Bot and Anti-Virus; install Threat Prevention policy."
+  reference   : "BANK|CP-14"
+</report>
+
+# ---------------------------------------------------------------
+# 15. SYN defender Settings  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-15 SYN Defender (SYN attack protection) is enabled"
+  info        : "IPS > Protections > By Protocol > Network Security > TCP > SYN Attack. Verify manually in SmartConsole."
+  solution    : "SmartConsole: enable SYN Attack protection in the IPS profile."
+  reference   : "BANK|CP-15"
+</report>
+
+# ---------------------------------------------------------------
+# 16. Ensure SNMPv3 is configured when SNMP is enabled  (Medium)
+# NOTE: this check fails if SNMP is off (no agent-version line).
+#       If SNMP is off on a device, treat the failure as not applicable.
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-16 SNMP agent version is v3-Only"
+  info        : "SNMPv1/v2 use clear-text community strings. If SNMP is enabled it must be v3 only."
+  solution    : "Hostname> set snmp agent-version v3-Only"
+  reference   : "BANK|CP-16"
+  regex       : "set snmp agent-version"
+  expect      : "set snmp agent-version v3-Only[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 17. SmartLog should be enabled  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-17 SmartLog is enabled on the management server"
+  info        : "Management server object > Management tab > Logs > Enable SmartLog. Verify manually in SmartConsole."
+  solution    : "SmartConsole: enable SmartLog; Policy > Install Database."
+  reference   : "BANK|CP-17"
+</report>
+
+# ---------------------------------------------------------------
+# 18. Configure Remote Syslog Server  (Medium)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-18a Remote syslog server is configured"
+  info        : "Logs must be sent to a remote syslog server so an attacker cannot delete them locally."
+  solution    : "Hostname> add syslog log-remote-address <IPv4> level <severity>"
+  reference   : "BANK|CP-18"
+  regex       : "add syslog log-remote-address"
+  expect      : "add syslog log-remote-address [0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+ level"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-18b Syslog filename is /var/log/system_logs.txt"
+  info        : "Bank baseline value."
+  solution    : "Hostname> set syslog filename /var/log/system_logs.txt"
+  reference   : "BANK|CP-18"
+  regex       : "set syslog filename"
+  expect      : "set syslog filename /var/log/system_logs\\.txt[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-18c Management audit logs are sent to syslog"
+  info        : "mgmtauditlogs must be on."
+  solution    : "Hostname> set syslog mgmtauditlogs on"
+  reference   : "BANK|CP-18"
+  regex       : "set syslog mgmtauditlogs"
+  expect      : "set syslog mgmtauditlogs (on|true)[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-18d Check Point logs are sent to syslog"
+  info        : "cplogs must be on."
+  solution    : "Hostname> set syslog cplogs on"
+  reference   : "BANK|CP-18"
+  regex       : "set syslog cplogs"
+  expect      : "set syslog cplogs (on|true)[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 19. Configure Timezone  (Medium)
+# VERIFY: baseline says "set timezone {Area} / {Region}" with no value.
+#         Asia / Kolkata assumed - confirm with the bank.
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-19 Timezone is set to Asia / Kolkata"
+  info        : "Correct timezone is needed for log correlation. Note the spaces around the slash."
+  solution    : "Hostname> set timezone Asia / Kolkata"
+  reference   : "BANK|CP-19"
+  regex       : "set timezone"
+  expect      : "set timezone Asia / Kolkata[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 20. Configure NTP Server  (Medium)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-20a NTP is active"
+  info        : "Accurate time is required for logs."
+  solution    : "Hostname> set ntp active on"
+  reference   : "BANK|CP-20"
+  regex       : "set ntp active"
+  expect      : "set ntp active (on|true)[\\s]*$"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-20b Primary NTP server is configured"
+  info        : "A primary NTP server must be set."
+  solution    : "Hostname> set ntp server primary <server> version <ver>"
+  reference   : "BANK|CP-20"
+  regex       : "set ntp server primary"
+  expect      : "set ntp server primary [^\\s]+ version [0-9]"
+</custom_item>
+
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-20c Secondary NTP server is configured"
+  info        : "A secondary NTP server must be set."
+  solution    : "Hostname> set ntp server secondary <server> version <ver>"
+  reference   : "BANK|CP-20"
+  regex       : "set ntp server secondary"
+  expect      : "set ntp server secondary [^\\s]+ version [0-9]"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 21. Ensure Telnet is Disabled  (Medium)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-21 Telnet is disabled"
+  info        : "Telnet sends credentials in clear text. Use SSH."
+  solution    : "Hostname> set net-access telnet off"
+  reference   : "BANK|CP-21"
+  regex       : "set net-access telnet"
+  expect      : "set net-access telnet (off|false)[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 22. Latest Firewall version should be installed  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-22 Latest recommended Gaia version and jumbo hotfix are installed"
+  info        : "Compare installed version (show version all) against Check Point's current recommended release. Verify manually."
+  solution    : "Upgrade to the vendor's recommended version."
+  reference   : "BANK|CP-22"
+</report>
+
+# ---------------------------------------------------------------
+# 23. Domain Name over UDP (Queries) disabled  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-23 'Accept Domain Name over UDP' is unchecked in Global Properties"
+  info        : "Policy > Global Properties > Firewall. Verify manually in SmartConsole."
+  solution    : "SmartConsole: uncheck 'Accept Domain Name over UDP (Queries)'."
+  reference   : "BANK|CP-23"
+</report>
+
+# ---------------------------------------------------------------
+# 24. Domain Name over TCP (Zone transfer) disabled  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-24 'Accept Domain Name over TCP (Zone transfer)' is unchecked in Global Properties"
+  info        : "Policy > Global Properties > Firewall. Explicit rule between DNS servers instead. Verify manually."
+  solution    : "SmartConsole: uncheck 'Accept Domain Name over TCP (Zone transfer)'; add explicit DNS rule."
+  reference   : "BANK|CP-24"
+</report>
+
+# ---------------------------------------------------------------
+# 25. NAT settings enabled  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-25 NAT global settings are enabled"
+  info        : "Global Properties > NAT: bi-directional NAT, translate destination on client side, automatic ARP. Verify manually."
+  solution    : "SmartConsole: Policy > Global Properties > NAT > enable the three settings."
+  reference   : "BANK|CP-25"
+</report>
+
+# ---------------------------------------------------------------
+# 26. Firewall configuration backed up  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-26 Configuration backup is taken"
+  info        : "Check last successful backup (show backup status / show backups). Verify manually."
+  solution    : "Hostname> add backup local  (or scp/ftp/tftp target)"
+  reference   : "BANK|CP-26"
+</report>
+
+# ---------------------------------------------------------------
+# 27. SmartEvent enabled  (Low)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-27 SmartEvent Server and Correlation Unit blades are enabled"
+  info        : "Management server object > Management tab. Verify manually in SmartConsole."
+  solution    : "SmartConsole: enable Logging Status, SmartEvent Server, SmartEvent Correlation Unit; install database."
+  reference   : "BANK|CP-27"
+</report>
+
+# ---------------------------------------------------------------
+# 28. Configure Hostname  (Low)
+# NOTE: only checks that a hostname is set. Whether the name reveals
+#       model/version must be judged by the reviewer.
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-28 Hostname is set (review that it does not reveal model or version)"
+  info        : "Hostname should not contain model number or software version."
+  solution    : "Hostname> set hostname <value>"
+  reference   : "BANK|CP-28"
+  regex       : "set hostname"
+  expect      : "set hostname [^\\s]+[\\s]*$"
+</custom_item>
+
+# ---------------------------------------------------------------
+# 29. Unused interfaces disabled  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-29 Unused interfaces are disabled"
+  info        : "Compare 'show interfaces' against the interfaces in use; unused ones must be state off. Nessus cannot know which are unused - verify manually."
+  solution    : "Hostname> set interface <name> state off"
+  reference   : "BANK|CP-29"
+</report>
+
+# ---------------------------------------------------------------
+# 30. Client Authentication secured  (Medium)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-30 Client Authentication telnet (port 259) is disabled and port 900 uses SSL"
+  info        : "In $FWDIR/conf/fwauthd.conf: line for 259 in.aclientd commented out; line for 900 in.ahclientd ends with ssl:defaultCert. This is a file on the gateway, not Gaia config - verify manually."
+  solution    : "Edit $FWDIR/conf/fwauthd.conf as per baseline."
+  reference   : "BANK|CP-30"
+</report>
+
+# ---------------------------------------------------------------
+# 31. Disk Space Alert set  (High)  - MANUAL
+# ---------------------------------------------------------------
+<report type:"WARNING">
+  description : "BANK-CP-31 Disk space alert is configured for each gateway"
+  info        : "SmartConsole > Gateways & Servers > gateway > Logs > Local Storage > 'When disk space is below' set, alert action set. Verify manually."
+  solution    : "SmartConsole: set disk space threshold and alert (Log / Popup / Mail / SNMP trap)."
+  reference   : "BANK|CP-31"
+</report>
+
+# ---------------------------------------------------------------
+# 32. Message Of The Day (MOTD) set  (Low)
+# ---------------------------------------------------------------
+<custom_item>
+  type        : CONFIG_CHECK
+  description : "BANK-CP-32 Message of the day is enabled"
+  info        : "MOTD banner must be on with a message."
+  solution    : "Hostname> set message motd on msgvalue 'MOTD BANNER'"
+  reference   : "BANK|CP-32"
+  regex       : "set message motd"
+  expect      : "set message motd on"
+</custom_item>
+
+</check_type>
